@@ -18,9 +18,9 @@ namespace KMLExtract
             settingsR.IgnoreComments = true;
             settingsR.IgnoreWhitespace = true;
             Placemarks placemarks = new Placemarks();
-            using (XmlReader reader = XmlReader.Create(@"h:\temp\SS_Merged2015.kml", settingsR))
+            using (XmlReader reader = XmlReader.Create(@"C:\temp\SS_Merged2015.kml", settingsR))
             {
-                //reader.MoveToContent();
+                
                 while(reader.Read())
                 {
                     if (reader.Name==Placemarks.XmlName)
@@ -29,7 +29,8 @@ namespace KMLExtract
                     }
                 }
             }
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"h:\temp\SS_Merged2015.csv"))
+            int photocount =0;
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\temp\SS_Merged2015.csv"))
             foreach (Placemark pm in placemarks.collection)
             {
 
@@ -39,9 +40,7 @@ namespace KMLExtract
                 {
                 foreach(Photo photo in pm.Description.Photos.collection)
                 {
-                    if (photo.pn == "IMG_0002_090445.jpg")
-                    { 
-                    }
+                    photocount += 1;
                     content += ",";
                     content += photo.pn;
                 }
@@ -50,6 +49,7 @@ namespace KMLExtract
                 file.WriteLine(content);
             }
             Console.WriteLine(placemarks.collection.Count() + "in total!");
+            Console.WriteLine("Photo Number " + photocount + " in total!");
             Console.Read();
         }
     }
