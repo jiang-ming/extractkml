@@ -18,7 +18,7 @@ namespace KMLExtract
             settingsR.IgnoreComments = true;
             settingsR.IgnoreWhitespace = true;
             Placemarks placemarks = new Placemarks();
-            using (XmlReader reader = XmlReader.Create(@"C:\temp\SS_Merged2015.kml", settingsR))
+            using (XmlReader reader = XmlReader.Create(@"h:\temp\SS_Merged2015.kml", settingsR))
             {
                 //reader.MoveToContent();
                 while(reader.Read())
@@ -29,10 +29,25 @@ namespace KMLExtract
                     }
                 }
             }
-            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"C:\temp\SS_Merged2015.csv"))
+            using (System.IO.StreamWriter file = new System.IO.StreamWriter(@"h:\temp\SS_Merged2015.csv"))
             foreach (Placemark pm in placemarks.collection)
             {
-                file.WriteLine(pm.Name+",");
+
+                string content = "";
+                content += pm.Name;
+                if (pm.Description.Photos != null)
+                {
+                foreach(Photo photo in pm.Description.Photos.collection)
+                {
+                    if (photo.pn == "IMG_0002_090445.jpg")
+                    { 
+                    }
+                    content += ",";
+                    content += photo.pn;
+                }
+                }
+
+                file.WriteLine(content);
             }
             Console.WriteLine(placemarks.collection.Count() + "in total!");
             Console.Read();
@@ -44,7 +59,7 @@ namespace KMLExtract
     {
         public const string XmlName = "table";
         public string Northing, Easting, Elevation;
-        public Photos Photos= new Photos();
+        public Photos Photos;
         public Description() { }
         public Description(string strDes) { ReadXmlString(strDes); }
         public void ReadXmlString(string strDescription)
@@ -56,27 +71,38 @@ namespace KMLExtract
                 if (isEmpty) return;
                 while (rDescription.NodeType == XmlNodeType.Element)
                 {
-                    rDescription.ReadStartElement("tr");
-                    rDescription.ReadElementContentAsString("th", "");
-                    rDescription.ReadEndElement();
-
-                    tst
+                    ReadXmlDimension(rDescription);
+                    Northing = ReadXmlDimension(rDescription);
+                    Easting = ReadXmlDimension(rDescription);
+                    Elevation = ReadXmlDimension(rDescription); 
+                    if (rDescription.Name==Photos.XmlName)
+                    {
+                        Photos = new Photos(rDescription);
+                    }
                 }
+                rDescription.ReadEndElement();
             }
-           
         }
-        private void ReadXmlDesHead(XmlReader r)
+
+        private string ReadXmlDimension(XmlReader r)
         {
             r.ReadStartElement("tr");
-
-            if (r.ReadElementContentAsString("th", "")=="Coordinates")
+            string returnValue="";
+            string dimension = r.ReadElementContentAsString();
+            if (dimension!="Coordinates")
+            { 
+                returnValue= r.ReadElementContentAsString();
+            }
             r.ReadEndElement();
+            return returnValue;
         }
     }
     public class Photos
     {
         public const string XmlName = "div";
         public IList<Photo> collection= new List<Photo>();
+        public Photos() { }
+        public Photos(XmlReader r) { ReadXml(r); }
         public void ReadXml(XmlReader r)
         {
             bool isEmpty = r.IsEmptyElement;
@@ -84,12 +110,54 @@ namespace KMLExtract
             if (isEmpty) return;
             while(r.NodeType==XmlNodeType.Element)
             {
+                if (r.Name == Photo.XmlNamePP) collection.Add(new Photo(r));
+                else r.Skip();//skip no Photo
             }
+            r.ReadEndElement();
         }
     }
     public class Photo
     {
-        //public
+        public const string XmlNamePP = "tr";
+        public const string XmlNamePN = "tr";
+        public string pp, pn;
+        public Photo() { }
+        public Photo(XmlReader r) { ReadXml(r); }
+        public void ReadXml(XmlReader r)
+        {
+            pn = ReadXmlPN(r);
+            
+            pp = ReadXmlPP(r);
+            Console.WriteLine(pn+", "+pp);
+        }
+        private string ReadXmlPN(XmlReader r)
+        {
+
+            string photoName="";
+            r.ReadStartElement();
+            r.ReadStartElement();
+            r.ReadStartElement();
+            r.ReadStartElement();
+            photoName = r.ReadElementContentAsString();
+            r.ReadEndElement();
+            r.ReadEndElement();
+            r.ReadEndElement();
+            r.ReadEndElement();
+            return photoName;
+        }
+        private string ReadXmlPP(XmlReader r)
+        {
+
+            string photoPath = "";
+            r.ReadStartElement();
+            r.ReadStartElement();
+            photoPath = r["src"];
+            photoPath = photoPath.Substring(8, photoPath.Length - 8);
+            r.Read();
+            r.ReadEndElement();
+            r.ReadEndElement();
+            return photoPath;
+        }
     }
     public class Placemarks
     {
@@ -106,11 +174,6 @@ namespace KMLExtract
             {
                 if (r.Name == Placemark.XmlName) collection.Add(new Placemark(r));
                 else r.Skip();//skip no Placemark
-                Console.WriteLine(collection.Count());
-                if (collection.Count()==3808)
-                {
-
-                }
             }
             
             r.ReadEndElement();
@@ -119,8 +182,8 @@ namespace KMLExtract
     public class Placemark
     {
         public const string XmlName = "Placemark";
-        public string Name, Coordinate, styleUrl,strDescription;
-
+        public string Name, Coordinate, styleUrl;
+        private string strDescription;
         public Description Description;
         public Placemark() { }
         public Placemark(XmlReader r) { ReadXml(r); }
