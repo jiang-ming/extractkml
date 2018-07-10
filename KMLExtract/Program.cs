@@ -7,10 +7,10 @@ using System.IO;
 
 namespace KMLExtract
 {
-     
+
     class Program
     {
-       
+
 
         static void Main(string[] args)
         {
@@ -21,7 +21,7 @@ namespace KMLExtract
             using (XmlReader reader = XmlReader.Create(@"C:\temp\SS_Merged2015.kml", settingsR))
             {
                 
-                while(reader.Read())
+                while(reader.Read())aa
                 {
                     if (reader.Name==Placemarks.XmlName)
                     {
@@ -53,8 +53,8 @@ namespace KMLExtract
             Console.Read();
         }
     }
-    
-    
+
+
     public class Description
     {
         public const string XmlName = "table";
@@ -74,7 +74,7 @@ namespace KMLExtract
                     ReadXmlDimension(rDescription);
                     Northing = ReadXmlDimension(rDescription);
                     Easting = ReadXmlDimension(rDescription);
-                    Elevation = ReadXmlDimension(rDescription); 
+                    Elevation = ReadXmlDimension(rDescription);
                     if (rDescription.Name==Photos.XmlName)
                     {
                         Photos = new Photos(rDescription);
@@ -90,7 +90,7 @@ namespace KMLExtract
             string returnValue="";
             string dimension = r.ReadElementContentAsString();
             if (dimension!="Coordinates")
-            { 
+            {
                 returnValue= r.ReadElementContentAsString();
             }
             r.ReadEndElement();
@@ -126,7 +126,7 @@ namespace KMLExtract
         public void ReadXml(XmlReader r)
         {
             pn = ReadXmlPN(r);
-            
+
             pp = ReadXmlPP(r);
             Console.WriteLine(pn+", "+pp);
         }
@@ -175,7 +175,7 @@ namespace KMLExtract
                 if (r.Name == Placemark.XmlName) collection.Add(new Placemark(r));
                 else r.Skip();//skip no Placemark
             }
-            
+
             r.ReadEndElement();
         }
     }
